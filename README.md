@@ -3,7 +3,9 @@ Pedro Eugenio, 08/2016
 
 # Instructions
 npm install
+
 npm start
+
 Open: http://localhost:3000
 
 # Tests
