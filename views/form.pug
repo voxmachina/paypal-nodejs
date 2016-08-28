@@ -1,0 +1,54 @@
+form#payment(action="#")
+    div.form-section
+        p
+            label(for="price") Price
+            input#price(type="text", rel="Price", name="price", required="required", pattern="[0-9]*[.,]?[0-9]+")
+        p
+            label(for="currency") Currency
+            select#currency(rel="Currency", pattern="[A-Z]{3}")
+                - currencies = ['USD', 'EUR', 'THB', 'HKD', 'SGD', 'AUD']
+                for currency in currencies
+                    option(value=currency) #{currency}
+    div.form-section
+        p.field-large
+            label(for="fullname") Full Name
+            input#fullname(type="text", pattern="[a-zA-Z0-9 ]+", rel="Full Name", name="name", minlength="3", required="required")
+    div.form-section
+        p.field-large
+            label(for="cardname") Card Holder Name
+            input#cardname(type="text", pattern="[a-zA-Z0-9 ]+", rel="Card Holder Name", minlength="3", required="required")
+    div.form-section
+        p.field-large
+            label(for="number") Number
+            input#number(type="number", rel="Number", pattern="[0-9]{13,16}", minlength="13", required="required")
+    div.form-section
+        p
+            label(for="day") Day
+            select#day(rel="Day", pattern="[0-9]*", required="required")
+                - var n = 0
+                    while n < 31
+                        - d = ++n
+                        option(value=d) #{d}
+        p
+            label(for="month") Month
+            select#month(rel="Month", pattern="[0-9]*", required="required")
+                - months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Set', 'Oct', 'Nov', 'Dec']
+                - i = 0
+                for month in months
+                    option(value=++i) #{month}
+        p
+            label(for="year") Year
+            select#year(rel="Year", pattern="[0-9]{4}", required="required")
+                - var year = new Date().getFullYear()
+                - var maxYear = year + 50
+                while year < maxYear
+                    - d = year++
+                    option(value=d) #{d}
+        p
+            label(for="ccv") CCV
+            input#ccv(type="number", rel="CCV", required="required", minlength="3", pattern="[0-9]*")
+    div.form-section
+        p
+            input#token(type="hidden", name="_token")
+            input#csrf(type="hidden", name="_csrf", value=_csrf)
+            input#submit(type="submit")

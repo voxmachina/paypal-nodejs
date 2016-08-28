@@ -1,0 +1,164 @@
+var FormHandler = function() {
+	this.init();
+};
+
+FormHandler.prototype = {
+	fields: [],
+	fieldIds: ['price', 'currency', 'fullname', 'cardname', 'number', 'day', 'month', 'year', 'ccv'],
+	messageContainerId: 'messages',
+	messageContainerElement: null,
+	messageTimeout: null,
+	fieldTimeout: null,
+	submitButton: null,
+
+	init: function() {
+		var form = document.getElementById('payment');
+		this.cacheElements();
+		this.getClientToken();
+		form.addEventListener('submit', this.onFormSubmit.bind(this));
+	},
+
+	getClientToken: function() {
+		var request = new Request();
+
+		request.get('/token', this.onTokenResponse.bind(this));
+	},
+
+	onTokenResponse: function(err, token) {
+		if (err) {
+			throw new Error('Could not retrieve payment token');
+		} else {
+			document.getElementById('token').value = token;
+		}
+	},
+
+	cacheElements: function() {
+		this.fieldIds.forEach(function(elemId) {
+			this.fields[elemId] = document.getElementById(elemId);
+		}, this);
+
+		this.messageContainerElement = document.getElementById(this.messageContainerId);
+
+		this.submitButton = document.getElementById('submit');
+	},
+
+	getParsedFormData: function() {
+		return {
+			price: {
+				amount: this.fields['price'].value,
+				currency: this.fields['currency'].value
+			},
+			customer: {
+				name: this.fields['fullname'].value
+			},
+			card: {
+				holder: this.fields['cardname'].value,
+				number: this.fields['number'].value,
+				expiration: {
+					day: this.fields['day'].value,
+					month: this.fields['month'].value,
+					year: this.fields['year'].value
+				},
+				ccv: this.fields['ccv'].value
+			}
+		};
+	},
+
+	onFormSubmit: function(evt) {
+		var paymentClient;
+
+		if (this.validateForm()) {
+			this.setLoading();
+			paymentClient = new PaymentClient(this.getParsedFormData());
+			paymentClient.submit(this.onPaymentClientResponse.bind(this));
+		}
+
+		evt.preventDefault();
+	},
+
+	setLoading: function() {
+		this.submitButton.value = 'Loading...';
+		this.submitButton.setAttribute('disabled', true);
+	},
+
+	setDone: function() {
+		this.submitButton.value = 'Submit';
+		this.submitButton.removeAttribute('disabled');
+	},
+
+	validateForm: function() {
+		var fieldId;
+		var field;
+		var pattern;
+		var isValid = true;
+
+		for (fieldId in this.fields) {
+			field = this.fields[fieldId];
+			if (!new RegExp(field.getAttribute('pattern')).test(field.value)) {
+				isValid = false;
+				field.classList.add('error');
+				if (this.fieldTimeout !== null) {
+					clearTimeout(this.fieldTimeout);
+				}
+				this.fieldTimeout = setTimeout(function() {
+					field.classList.remove('error');
+				}, 3000);
+				this.showError(field.getAttribute('rel') + ' requires a valid value');
+				break;
+			}
+		}
+
+		return isValid;
+	},
+
+	onPaymentClientResponse: function(err, data) {
+		if (err) {
+			this.showError(data);
+		} else {
+			this.showSuccess('Payment made with success');
+		}
+
+		this.setDone();
+	},
+
+	encodeParams: function () {
+		var encodedParams = '';
+
+		this.fields.forEach(function(elem) {
+			if (encodedParams.length > 0) {
+				encodedParams += '&';
+			}
+			encodedParams += encodeURI(elem.id + '=' + elem.value);
+		});
+
+		return encodedParams;
+	},
+
+	showSuccess: function(msg) {
+		this.messageContainerElement.innerHTML = msg;
+		this.messageContainerElement.classList.remove('error');
+		this.messageContainerElement.classList.add('success');
+		this.showMessage();
+	},
+
+	showError: function(msg) {
+		this.messageContainerElement.innerHTML = msg;
+		this.messageContainerElement.classList.remove('success');
+		this.messageContainerElement.classList.add('error');
+		this.showMessage();
+	},
+
+	showMessage: function() {
+		this.messageContainerElement.classList.add('active');
+		if (this.messageTimeout !== null) {
+			clearTimeout(this.messageTimeout);
+		}
+		this.messageTimeout = setTimeout(this.hideMessage.bind(this), 3000);
+	},
+
+	hideMessage: function() {
+		this.messageContainerElement.classList.remove('error');
+		this.messageContainerElement.classList.remove('success');
+		this.messageContainerElement.classList.remove('active');
+	}
+};

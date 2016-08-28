@@ -1,2 +1,5 @@
-# paypal-nodejs
-A Paypal and Braintree payment gateway example
+# test
+test
+
+
+Uses native browser validation with a fallback for older browsers.
