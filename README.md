@@ -1,9 +1,9 @@
 # A Paypal and Braintree Payment Gateway Example
+Pedro Eugenio, 08/2016
 
-# Start server
+# Instructions
+npm install
 npm start
-
-# Payment form
 Open: http://localhost:3000
 
 # Tests
